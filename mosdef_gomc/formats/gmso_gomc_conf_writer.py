@@ -7545,21 +7545,22 @@ class GOMCControl:
         )
         data_control_file.write(" \n")
 
-        data_control_file.write("####################################\n")
-        data_control_file.write("# OutHistSettings \n")
-        data_control_file.write("####################################\n")
-        data_control_file.write("{:25s} {}\n".format("DistName", self.DistName))
-        data_control_file.write("{:25s} {}\n".format("HistName", self.HistName))
-        data_control_file.write(
-            "{:25s} {}\n".format("RunNumber", self.RunNumber)
-        )
-        data_control_file.write(
-            "{:25s} {}\n".format("RunLetter", self.RunLetter)
-        )
-        data_control_file.write(
-            "{:25s} {}\n".format("SampleFreq", self.SampleFreq)
-        )
-        data_control_file.write(" \n")
+        if self.HistogramFreq[0] is True:
+            data_control_file.write("####################################\n")
+            data_control_file.write("# OutHistSettings \n")
+            data_control_file.write("####################################\n")
+            data_control_file.write("{:25s} {}\n".format("DistName", self.DistName))
+            data_control_file.write("{:25s} {}\n".format("HistName", self.HistName))
+            data_control_file.write(
+                "{:25s} {}\n".format("RunNumber", self.RunNumber)
+            )
+            data_control_file.write(
+                "{:25s} {}\n".format("RunLetter", self.RunLetter)
+            )
+            data_control_file.write(
+                "{:25s} {}\n".format("SampleFreq", self.SampleFreq)
+            )
+            data_control_file.write(" \n")
 
         data_control_file.write("####################################\n")
         data_control_file.write("# enable: blk avg., fluct. \n")
