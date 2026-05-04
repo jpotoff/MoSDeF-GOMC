@@ -466,6 +466,7 @@ def unique_atom_naming(
     unique_individual_atom_names_dict = {}
     individual_atom_names_list = []
     missing_bead_to_atom_name = []
+    last_j_for_prefix = {}
     for i, site in enumerate(topology.sites):
         site_name_unique_naming = site.__dict__["name_"]
 
@@ -483,54 +484,57 @@ def unique_atom_naming(
                 "ERROR: The input file, likely mol2 file does not contain element names or char, only int."
             )
 
-        interate_thru_names = True
-        j = 0
-        while interate_thru_names is True:
-            j = j + 1
-            if str(site_name_unique_naming)[:1] == "_":
-                if (
-                    bead_to_atom_name_dict is not None
-                    and (str(site_name_unique_naming) in bead_to_atom_name_dict)
-                    is True
-                ):
-                    if (
-                        len(
-                            bead_to_atom_name_dict[str(site_name_unique_naming)]
-                        )
-                        > 2
-                    ):
-                        text_to_write = (
-                            "ERROR: only enter atom names that have 2 or less digits"
-                            + " in the Bead to atom naming dictionary (bead_to_atom_name_dict)."
-                        )
-                        warn(text_to_write)
-                        return None, None, None
-                    else:
-                        atom_name_value = bead_to_atom_name_dict[
-                            str(site_name_unique_naming)
-                        ]
-                        no_digits_atom_name = 2
-                else:
-                    missing_bead_to_atom_name.append(1)
-                    atom_name_value = "BD"
-                    no_digits_atom_name = 2
-            elif (
-                len(str(element_name_unique_naming)) > 2
-                and not str(site_name_unique_naming)[:1] == "_"
+        if str(site_name_unique_naming)[:1] == "_":
+            if (
+                bead_to_atom_name_dict is not None
+                and (str(site_name_unique_naming) in bead_to_atom_name_dict)
+                is True
             ):
-                if len(str(element_name_unique_naming)) == 3:
-                    no_digits_atom_name = 1
-                    atom_name_value = element_name_unique_naming
-                else:
+                if (
+                    len(
+                        bead_to_atom_name_dict[str(site_name_unique_naming)]
+                    )
+                    > 2
+                ):
                     text_to_write = (
-                        "ERROR: atom numbering will not work propery at"
-                        + " the element has more than 4 charaters"
+                        "ERROR: only enter atom names that have 2 or less digits"
+                        + " in the Bead to atom naming dictionary (bead_to_atom_name_dict)."
                     )
                     warn(text_to_write)
                     return None, None, None
+                else:
+                    atom_name_value = bead_to_atom_name_dict[
+                        str(site_name_unique_naming)
+                    ]
+                    no_digits_atom_name = 2
             else:
+                missing_bead_to_atom_name.append(1)
+                atom_name_value = "BD"
                 no_digits_atom_name = 2
+        elif (
+            len(str(element_name_unique_naming)) > 2
+            and not str(site_name_unique_naming)[:1] == "_"
+        ):
+            if len(str(element_name_unique_naming)) == 3:
+                no_digits_atom_name = 1
                 atom_name_value = element_name_unique_naming
+            else:
+                text_to_write = (
+                    "ERROR: atom numbering will not work propery at"
+                    + " the element has more than 4 charaters"
+                )
+                warn(text_to_write)
+                return None, None, None
+        else:
+            no_digits_atom_name = 2
+            atom_name_value = element_name_unique_naming
+
+        prefix_key = f"{residue_id_list[i]}_{residue_names_list[i]}_{atom_name_value}"
+        j = last_j_for_prefix.get(prefix_key, 0)
+
+        interate_thru_names = True
+        while interate_thru_names is True:
+            j = j + 1
 
             atom_name_iteration = str(atom_name_value) + str(
                 base10_to_base62_alph_num(j)
@@ -552,6 +556,7 @@ def unique_atom_naming(
                 unique_individual_atom_names_dict.update(
                     {atom_res_no_resname_atomname_iteration: i + 1}
                 )
+                last_j_for_prefix[prefix_key] = j
                 interate_thru_names = False
                 individual_atom_names_list.append(
                     str(atom_name_value)
@@ -5738,19 +5743,17 @@ class Charmm:
 
             output_write.write("\n")
 
+            site_to_index = {site: i for i, site in enumerate(stuct_iteration.sites)}
+
             # BONDS: Calculate the bonding data
             output_write.write(first_indent % no_bonds + " !NBOND: bonds\n")
             for i_bond, bond_iteration in enumerate(stuct_iteration.bonds):
                 output_write.write(
                     (first_indent * 2)
                     % (
-                        stuct_iteration.get_index(
-                            bond_iteration.connection_members[0]
-                        )
+                        site_to_index[bond_iteration.connection_members[0]]
                         + 1,
-                        stuct_iteration.get_index(
-                            bond_iteration.connection_members[1]
-                        )
+                        site_to_index[bond_iteration.connection_members[1]]
                         + 1,
                     )
                 )
@@ -5772,17 +5775,11 @@ class Charmm:
                 output_write.write(
                     (first_indent * 3)
                     % (
-                        stuct_iteration.get_index(
-                            angle_iteration.connection_members[0]
-                        )
+                        site_to_index[angle_iteration.connection_members[0]]
                         + 1,
-                        stuct_iteration.get_index(
-                            angle_iteration.connection_members[1]
-                        )
+                        site_to_index[angle_iteration.connection_members[1]]
                         + 1,
-                        stuct_iteration.get_index(
-                            angle_iteration.connection_members[2]
-                        )
+                        site_to_index[angle_iteration.connection_members[2]]
                         + 1,
                     )
                 )
@@ -5808,21 +5805,13 @@ class Charmm:
                 output_write.write(
                     (first_indent * 4)
                     % (
-                        stuct_iteration.get_index(
-                            dihedral_iter.connection_members[0]
-                        )
+                        site_to_index[dihedral_iter.connection_members[0]]
                         + 1,
-                        stuct_iteration.get_index(
-                            dihedral_iter.connection_members[1]
-                        )
+                        site_to_index[dihedral_iter.connection_members[1]]
                         + 1,
-                        stuct_iteration.get_index(
-                            dihedral_iter.connection_members[2]
-                        )
+                        site_to_index[dihedral_iter.connection_members[2]]
                         + 1,
-                        stuct_iteration.get_index(
-                            dihedral_iter.connection_members[3]
-                        )
+                        site_to_index[dihedral_iter.connection_members[3]]
                         + 1,
                     )
                 )
@@ -5848,21 +5837,13 @@ class Charmm:
                 output_write.write(
                     (first_indent * 4)
                     % (
-                        stuct_iteration.get_index(
-                            improper_iter.connection_members[0]
-                        )
+                        site_to_index[improper_iter.connection_members[0]]
                         + 1,
-                        stuct_iteration.get_index(
-                            improper_iter.connection_members[1]
-                        )
+                        site_to_index[improper_iter.connection_members[1]]
                         + 1,
-                        stuct_iteration.get_index(
-                            improper_iter.connection_members[2]
-                        )
+                        site_to_index[improper_iter.connection_members[2]]
                         + 1,
-                        stuct_iteration.get_index(
-                            improper_iter.connection_members[3]
-                        )
+                        site_to_index[improper_iter.connection_members[3]]
                         + 1,
                     )
                 )
@@ -6000,6 +5981,9 @@ class Charmm:
             atom_alternate_location_all_values = ""
             residue_code_insertion_all_values = ""
             segment_id_all_values = ""
+
+            site_to_index = {site: i for i, site in enumerate(stuct_only_iteration.sites)}
+
             for f, site in enumerate(stuct_only_iteration.sites):
                 if residue_names_list_pdb[f] not in self.residues:
                     self.input_error = True
@@ -6007,7 +5991,7 @@ class Charmm:
                     raise ValueError(print_error_message)
 
                 # get other values
-                atom_no_list.append(stuct_only_iteration.get_index(site))
+                atom_no_list.append(site_to_index[site])
 
                 # only 2 character element names are allowed
                 site_name = str(site.__dict__["name_"])
