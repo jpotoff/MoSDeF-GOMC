@@ -100,6 +100,10 @@ class TestGOMCControlFileWriter(BaseTest):
                 "Rswitch",
                 "ElectroStatic",
                 "Ewald",
+                "ElectrostaticMethod",
+                "PMESplineOrder",
+                "PMEGridSpacing",
+                "PMERefreshFreq",
                 "CachedFourier",
                 "Tolerance",
                 "Dielectric",
@@ -183,6 +187,10 @@ class TestGOMCControlFileWriter(BaseTest):
                 "Rswitch",
                 "ElectroStatic",
                 "Ewald",
+                "ElectrostaticMethod",
+                "PMESplineOrder",
+                "PMEGridSpacing",
+                "PMERefreshFreq",
                 "CachedFourier",
                 "Tolerance",
                 "Dielectric",
@@ -268,6 +276,10 @@ class TestGOMCControlFileWriter(BaseTest):
                 "Rswitch",
                 "ElectroStatic",
                 "Ewald",
+                "ElectrostaticMethod",
+                "PMESplineOrder",
+                "PMEGridSpacing",
+                "PMERefreshFreq",
                 "CachedFourier",
                 "Tolerance",
                 "Dielectric",
@@ -572,6 +584,10 @@ class TestGOMCControlFileWriter(BaseTest):
                 "VDWGeometricSigma": False,
                 "Exclude": False,
                 "Ewald": False,
+                "ElectrostaticMethod": False,
+                "PMESplineOrder": False,
+                "PMEGridSpacing": False,
+                "PMERefreshFreq": False,
                 "ElectroStatic": False,
                 "CachedFourier": False,
                 "Tolerance": False,
@@ -696,6 +712,14 @@ class TestGOMCControlFileWriter(BaseTest):
                     split_line = line.split()
                     assert split_line[1] == "True"
 
+                elif line.startswith("ElectrostaticMethod "):
+                    variables_read_dict["ElectrostaticMethod"] = True
+                elif line.startswith("PMESplineOrder "):
+                    variables_read_dict["PMESplineOrder"] = True
+                elif line.startswith("PMEGridSpacing "):
+                    variables_read_dict["PMEGridSpacing"] = True
+                elif line.startswith("PMERefreshFreq "):
+                    variables_read_dict["PMERefreshFreq"] = True
                 elif line.startswith("ElectroStatic "):
                     variables_read_dict["ElectroStatic"] = True
                     split_line = line.split()
@@ -934,6 +958,10 @@ class TestGOMCControlFileWriter(BaseTest):
             "VDWGeometricSigma": True,
             "Exclude": True,
             "Ewald": True,
+            "ElectrostaticMethod": False,
+            "PMESplineOrder": False,
+            "PMEGridSpacing": False,
+            "PMERefreshFreq": False,
             "ElectroStatic": True,
             "CachedFourier": True,
             "Tolerance": True,
@@ -1832,6 +1860,10 @@ class TestGOMCControlFileWriter(BaseTest):
                 "RcutLow": False,
                 "Exclude": False,
                 "Ewald": False,
+                "ElectrostaticMethod": False,
+                "PMESplineOrder": False,
+                "PMEGridSpacing": False,
+                "PMERefreshFreq": False,
                 "ElectroStatic": False,
                 "CachedFourier": False,
                 "Tolerance": False,
@@ -1971,6 +2003,14 @@ class TestGOMCControlFileWriter(BaseTest):
                     split_line = line.split()
                     assert split_line[1] == "False"
 
+                elif line.startswith("ElectrostaticMethod "):
+                    variables_read_dict["ElectrostaticMethod"] = True
+                elif line.startswith("PMESplineOrder "):
+                    variables_read_dict["PMESplineOrder"] = True
+                elif line.startswith("PMEGridSpacing "):
+                    variables_read_dict["PMEGridSpacing"] = True
+                elif line.startswith("PMERefreshFreq "):
+                    variables_read_dict["PMERefreshFreq"] = True
                 elif line.startswith("ElectroStatic "):
                     variables_read_dict["ElectroStatic"] = True
                     split_line = line.split()
@@ -2298,6 +2338,10 @@ class TestGOMCControlFileWriter(BaseTest):
             "RcutLow": True,
             "Exclude": True,
             "Ewald": True,
+            "ElectrostaticMethod": False,
+            "PMESplineOrder": False,
+            "PMEGridSpacing": False,
+            "PMERefreshFreq": False,
             "ElectroStatic": True,
             "CachedFourier": True,
             "Tolerance": True,
@@ -2341,11 +2385,11 @@ class TestGOMCControlFileWriter(BaseTest):
             "ConsoleFreq": True,
             "BlockAverageFreq": True,
             "HistogramFreq": True,
-            "DistName": True,
-            "HistName": True,
-            "RunNumber": True,
-            "RunLetter": True,
-            "SampleFreq": True,
+            "DistName": False,
+            "HistName": False,
+            "RunNumber": False,
+            "RunLetter": False,
+            "SampleFreq": False,
             "OutEnergy": True,
             "OutPressure": True,
             "OutMolNum": True,

@@ -338,6 +338,19 @@ def _get_all_possible_input_variables(description=False):
         "Note: By default, GOMC will set ElectroStatic to True if Ewald summation  "
         "method was used to calculate coulomb interaction."
         "".format(_get_default_variables_dict()["Ewald"]),
+        "ElectrostaticMethod": "Simulation info (all ensembles): string, default = {}. "
+        "Selects the method to calculate coulomb interaction (Ewald or PME). "
+        "If set to 'none', the boolean format 'Ewald' will be printed instead."
+        "".format(_get_default_variables_dict()["ElectrostaticMethod"]),
+        "PMESplineOrder": "Simulation info (all ensembles): int, default = {}. "
+        "Sets the order of the spline interpolation used in PME."
+        "".format(_get_default_variables_dict()["PMESplineOrder"]),
+        "PMEGridSpacing": "Simulation info (all ensembles): float, default = {}. "
+        "Sets the grid spacing used in PME."
+        "".format(_get_default_variables_dict()["PMEGridSpacing"]),
+        "PMERefreshFreq": "Simulation info (all ensembles): int, default = {}. "
+        "Sets the update frequency for the PME grid."
+        "".format(_get_default_variables_dict()["PMERefreshFreq"]),
         "CachedFourier": "Simulation info (all ensembles): boolean, default = {}. "
         "Considers storing the reciprocal terms for Ewald summation "
         "calculation in order to improve the code performance. This option would increase the code "
@@ -1072,6 +1085,10 @@ def _get_default_variables_dict():
         "TabulatedEnergiesFile": None,
         "ElectroStatic": True,
         "Ewald": True,
+        "ElectrostaticMethod": None,
+        "PMESplineOrder": 8,
+        "PMEGridSpacing": 1.0,
+        "PMERefreshFreq": 100000,
         "CachedFourier": False,
         "Tolerance": 0.00001,
         "Dielectric": 15,
@@ -1501,6 +1518,10 @@ def _get_possible_ensemble_input_variables(ensemble_type):
         "TabulatedEnergiesFile",
         "ElectroStatic",
         "Ewald",
+        "ElectrostaticMethod",
+        "PMESplineOrder",
+        "PMEGridSpacing",
+        "PMERefreshFreq",
         "CachedFourier",
         "Tolerance",
         "Dielectric",
@@ -1806,6 +1827,15 @@ class GOMCControl:
          If True, Ewald summation calculation needs to be considered and false if not.
          Note: By default, GOMC will set ElectroStatic to True if Ewald summation
          method was used to calculate coulomb interaction.
+     ElectrostaticMethod: string, default = None
+         Selects the method to calculate coulomb interaction (Ewald or PME).
+         If set to 'none', the boolean format 'Ewald' will be printed instead.
+     PMESplineOrder: int, default = 8
+         Sets the order of the spline interpolation used in PME.
+     PMEGridSpacing: float, default = 1.0
+         Sets the grid spacing used in PME.
+     PMERefreshFreq: int, default = 100000
+         Sets the update frequency for the PME grid.
      CachedFourier: boolean, default = False
          Considers storing the reciprocal terms for Ewald summation calculation in
          order to improve the code performance. This option would increase the code
@@ -3176,6 +3206,10 @@ class GOMCControl:
         ]
         self.ElectroStatic = default_input_variables_dict["ElectroStatic"]
         self.Ewald = default_input_variables_dict["Ewald"]
+        self.ElectrostaticMethod = default_input_variables_dict["ElectrostaticMethod"]
+        self.PMESplineOrder = default_input_variables_dict["PMESplineOrder"]
+        self.PMEGridSpacing = default_input_variables_dict["PMEGridSpacing"]
+        self.PMERefreshFreq = default_input_variables_dict["PMERefreshFreq"]
         self.CachedFourier = default_input_variables_dict["CachedFourier"]
         self.Tolerance = default_input_variables_dict["Tolerance"]
         self.Dielectric = default_input_variables_dict["Dielectric"]
@@ -3982,6 +4016,60 @@ class GOMCControl:
                     and key in possible_ensemble_variables_list
                 ):
                     self.Ewald = self.input_variables_dict[key]
+
+            key = "ElectrostaticMethod"
+            if input_var_keys_list[var_iter] == key:
+                if self.input_variables_dict[key] is not None:
+                    if not isinstance(self.input_variables_dict[key], str):
+                        bad_input_variables_values_list.append(key)
+                        
+                if (
+                    input_var_keys_list[var_iter] == key
+                    and key in possible_ensemble_variables_list
+                ):
+                    self.ElectrostaticMethod = self.input_variables_dict[key]
+
+            key = "PMESplineOrder"
+            if input_var_keys_list[var_iter] == key:
+                if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
+                    self.ck_input_variable_int_greater_zero(
+                        self.input_variables_dict,
+                        key,
+                        bad_input_variables_values_list,
+                    )
+                if (
+                    input_var_keys_list[var_iter] == key
+                    and key in possible_ensemble_variables_list
+                ):
+                    self.PMESplineOrder = self.input_variables_dict[key]
+
+            key = "PMEGridSpacing"
+            if input_var_keys_list[var_iter] == key:
+                if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
+                    self.ck_input_variable_float_greater_zero(
+                        self.input_variables_dict,
+                        key,
+                        bad_input_variables_values_list,
+                    )
+                if (
+                    input_var_keys_list[var_iter] == key
+                    and key in possible_ensemble_variables_list
+                ):
+                    self.PMEGridSpacing = self.input_variables_dict[key]
+
+            key = "PMERefreshFreq"
+            if input_var_keys_list[var_iter] == key:
+                if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
+                    self.ck_input_variable_int_greater_zero(
+                        self.input_variables_dict,
+                        key,
+                        bad_input_variables_values_list,
+                    )
+                if (
+                    input_var_keys_list[var_iter] == key
+                    and key in possible_ensemble_variables_list
+                ):
+                    self.PMERefreshFreq = self.input_variables_dict[key]
 
             key = "CachedFourier"
             if input_var_keys_list[var_iter] == key:
@@ -6888,7 +6976,12 @@ class GOMCControl:
         data_control_file.write("####################################\n")
         data_control_file.write("# ELECTROSTATIC   \n")
         data_control_file.write("####################################\n")
-        data_control_file.write("{:25s} {}\n".format("Ewald", self.Ewald))
+        if self.ElectrostaticMethod is not None and str(self.ElectrostaticMethod).lower() != "none":
+            data_control_file.write(
+                "{:25s} {}\n".format("ElectrostaticMethod", self.ElectrostaticMethod)
+            )
+        else:
+            data_control_file.write("{:25s} {}\n".format("Ewald", self.Ewald))
         data_control_file.write(
             "{:25s} {}\n".format("ElectroStatic", self.ElectroStatic)
         )
@@ -6905,6 +6998,20 @@ class GOMCControl:
         data_control_file.write(
             "{:25s} {}\n".format("1-4scaling", self.electrostatic_1_4)
         )
+        if self.ElectrostaticMethod is not None and str(self.ElectrostaticMethod).upper() == "PME":
+            data_control_file.write(" \n")
+            if self.PMESplineOrder is not None:
+                data_control_file.write(
+                    "{:25s} {}\n".format("PMESplineOrder", self.PMESplineOrder)
+                )
+            if self.PMEGridSpacing is not None:
+                data_control_file.write(
+                    "{:25s} {}\n".format("PMEGridSpacing", self.PMEGridSpacing)
+                )
+            if self.PMERefreshFreq is not None:
+                data_control_file.write(
+                    "{:25s} {}\n".format("PMERefreshFreq", self.PMERefreshFreq)
+                )
         data_control_file.write(" \n")
         if self.RcutCoulomb_box_0 is not None:
             data_control_file.write(
