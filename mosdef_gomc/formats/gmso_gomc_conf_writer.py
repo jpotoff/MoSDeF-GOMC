@@ -4032,7 +4032,7 @@ class GOMCControl:
             key = "PMESplineOrder"
             if input_var_keys_list[var_iter] == key:
                 if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
-                    self.ck_input_variable_int_greater_zero(
+                    self.ck_input_variable_int_or_float_greater_zero(
                         self.input_variables_dict,
                         key,
                         bad_input_variables_values_list,
@@ -4046,7 +4046,7 @@ class GOMCControl:
             key = "PMEGridSpacing"
             if input_var_keys_list[var_iter] == key:
                 if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
-                    self.ck_input_variable_float_greater_zero(
+                    self.ck_input_variable_int_or_float_greater_zero(
                         self.input_variables_dict,
                         key,
                         bad_input_variables_values_list,
@@ -4060,7 +4060,7 @@ class GOMCControl:
             key = "PMERefreshFreq"
             if input_var_keys_list[var_iter] == key:
                 if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
-                    self.ck_input_variable_int_greater_zero(
+                    self.ck_input_variable_int_or_float_greater_zero(
                         self.input_variables_dict,
                         key,
                         bad_input_variables_values_list,
