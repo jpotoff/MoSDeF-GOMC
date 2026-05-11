@@ -11209,3 +11209,48 @@ class TestCharmmWriterData(BaseTest):
             os.remove("charmm_template_ff_multiple.psf")
         if os.path.exists("charmm_template_ff_multiple.pdb"):
             os.remove("charmm_template_ff_multiple.pdb")
+
+    def test_save_charmm_use_template_ff_multiple_boxes(self, ethane_gomc, water):
+        box_0 = mb.fill_box(
+            compound=[ethane_gomc], n_compounds=[2], box=[4, 4, 4]
+        )
+        box_1 = mb.fill_box(
+            compound=[water], n_compounds=[2], box=[4, 4, 4]
+        )
+
+        charmm = Charmm(
+            box_0,
+            "charmm_template_ff_multibox",
+            structure_box_1=box_1,
+            filename_box_1="charmm_template_ff_multibox_1",
+            ff_filename="charmm_template_ff_multibox",
+            residues=[ethane_gomc.name, water.name],
+            forcefield_selection={
+                ethane_gomc.name: "oplsaa",
+                water.name: get_mosdef_gomc_fn(
+                    "spce_coul_14_half__LJ_14_zero.xml"
+                ),
+            },
+            atom_type_naming_style="general",
+            use_template_ff=True,
+        )
+        charmm.write_inp()
+        charmm.write_psf()
+        charmm.write_pdb()
+
+        assert os.path.exists("charmm_template_ff_multibox.inp")
+        assert os.path.exists("charmm_template_ff_multibox.psf")
+        assert os.path.exists("charmm_template_ff_multibox.pdb")
+        assert os.path.exists("charmm_template_ff_multibox_1.psf")
+        assert os.path.exists("charmm_template_ff_multibox_1.pdb")
+
+        if os.path.exists("charmm_template_ff_multibox.inp"):
+            os.remove("charmm_template_ff_multibox.inp")
+        if os.path.exists("charmm_template_ff_multibox.psf"):
+            os.remove("charmm_template_ff_multibox.psf")
+        if os.path.exists("charmm_template_ff_multibox.pdb"):
+            os.remove("charmm_template_ff_multibox.pdb")
+        if os.path.exists("charmm_template_ff_multibox_1.psf"):
+            os.remove("charmm_template_ff_multibox_1.psf")
+        if os.path.exists("charmm_template_ff_multibox_1.pdb"):
+            os.remove("charmm_template_ff_multibox_1.pdb")

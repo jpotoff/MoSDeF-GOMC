@@ -1700,12 +1700,12 @@ class Charmm:
                     self.topology_box_0_and_1_ff.add_site(site_i)
                 for site_i in self.topology_box_1_ff.sites:
                     self.topology_box_0_and_1_ff.add_site(site_i)
-            # iterate thru connections (bonds, angles, dihedrals, and impropers) and add to empty topology
-            # to combine the topologyies of box 0 and 1
-            for connection_i in self.topology_box_0_ff.connections:
-                self.topology_box_0_and_1_ff.add_connection(connection_i)
-            for connection_i in self.topology_box_1_ff.connections:
-                self.topology_box_0_and_1_ff.add_connection(connection_i)
+                # iterate thru connections (bonds, angles, dihedrals, and impropers) and add to empty topology
+                # to combine the topologyies of box 0 and 1
+                for connection_i in self.topology_box_0_ff.connections:
+                    self.topology_box_0_and_1_ff.add_connection(connection_i)
+                for connection_i in self.topology_box_1_ff.connections:
+                    self.topology_box_0_and_1_ff.add_connection(connection_i)
 
             # create/add to alot of the dictionaries
             self.atom_types_dict_per_residue.update(self.atom_types_dict_box_0)

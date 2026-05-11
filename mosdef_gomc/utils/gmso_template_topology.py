@@ -110,6 +110,11 @@ class TemplateTopologyProxy:
     def n_impropers(self): return len(self.impropers)
     
     @property
+    def connections(self):
+        import itertools
+        return itertools.chain(self.bonds, self.angles, self.dihedrals, self.impropers)
+    
+    @property
     def bond_types(self): return getattr(self.template_top, 'bond_types', [])
     @property
     def angle_types(self): return getattr(self.template_top, 'angle_types', [])
