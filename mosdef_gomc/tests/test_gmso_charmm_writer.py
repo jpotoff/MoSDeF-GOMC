@@ -11167,3 +11167,45 @@ class TestCharmmWriterData(BaseTest):
             os.remove("tabulated_test.psf")
         if os.path.exists("tabulated_test.pdb"):
             os.remove("tabulated_test.pdb")
+
+    def test_save_charmm_use_template_ff_multiple_molecules(self, ethane_gomc, water):
+        box_0 = mb.fill_box(
+            compound=[ethane_gomc, water], n_compounds=[2, 2], box=[4, 4, 4]
+        )
+
+        charmm = Charmm(
+            box_0,
+            "charmm_template_ff_multiple",
+            ff_filename="charmm_template_ff_multiple",
+            residues=[ethane_gomc.name, water.name],
+            forcefield_selection={
+                ethane_gomc.name: "oplsaa",
+                water.name: get_mosdef_gomc_fn(
+                    "spce_coul_14_half__LJ_14_zero.xml"
+                ),
+            },
+            atom_type_naming_style="general",
+            use_template_ff=True,
+        )
+        charmm.write_inp()
+        charmm.write_psf()
+        charmm.write_pdb()
+
+        assert os.path.exists("charmm_template_ff_multiple.inp")
+        assert os.path.exists("charmm_template_ff_multiple.psf")
+        assert os.path.exists("charmm_template_ff_multiple.pdb")
+
+        with open("charmm_template_ff_multiple.psf", "r") as fp:
+            out_gomc = fp.readlines()
+            for line in out_gomc:
+                if "!NATOM" in line:
+                    natoms = int(line.split()[0])
+                    assert natoms == 22
+                    break
+
+        if os.path.exists("charmm_template_ff_multiple.inp"):
+            os.remove("charmm_template_ff_multiple.inp")
+        if os.path.exists("charmm_template_ff_multiple.psf"):
+            os.remove("charmm_template_ff_multiple.psf")
+        if os.path.exists("charmm_template_ff_multiple.pdb"):
+            os.remove("charmm_template_ff_multiple.pdb")

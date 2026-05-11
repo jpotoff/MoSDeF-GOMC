@@ -8,6 +8,8 @@ import scipy
 import unyt as u
 from mbuild.box import Box
 from mbuild.compound import Compound
+from gmso.utils.io import import_
+from mosdef_gomc.utils.gmso_template_topology import TemplateTopologyProxy, combine_proxies
 from unyt.dimensions import angle, energy, length, temperature
 
 from mosdef_gomc.utils.conversion import (
@@ -835,7 +837,7 @@ class Charmm:
             >>> chloride_atom_name = "Cl"
             >>> chloride_child_bead = mbuild.Compound(name=chloride_atom_name)
             >>> chloride = mb.Compound(name="CHL")
-            >>> chloride.add(chloride_child_atom, inherit_periodicity=False)
+            >>> chloride.add(chloride_child_bead, inherit_periodicity=False)
 
             >>> sodium_chloride_box = mbuild.fill_box(
             >>>     compound=[sodium, chloride],
@@ -1202,7 +1204,7 @@ class Charmm:
 
         NOTE: NAMD and GOMC can not have mulitple electrostatic 1-4 scalers, since it is
         provided as a single input in their control files.
-    combining_rule: str ('geometric' or 'lorentz'"'),
+    combining_rule: str ('geometric' or 'lorentz'""),
         The possible mixing/combining  rules are 'geometric' or 'lorentz',
         which provide the  geometric and arithmetic mixing rule, respectively.
         NOTE: Arithmetic means the 'lorentz' combining or mixing rule.
@@ -1313,6 +1315,7 @@ class Charmm:
         set_residue_pdb_occupancy_to_1=None,
         ff_filename=None,
         gmso_match_ff_by="molecule",
+        use_template_ff=False,
     ):
         # set all input variables to the class
         self.structure_box_0 = structure_box_0
@@ -1329,6 +1332,7 @@ class Charmm:
         self.fix_residue_in_box = fix_residue_in_box
         self.set_residue_pdb_occupancy_to_1 = set_residue_pdb_occupancy_to_1
         self.ff_filename = ff_filename
+        self.use_template_ff = use_template_ff
         self.combining_rule = None
 
         # value to check for errors, with  self.input_error = True or False. Set to False initally
@@ -1648,7 +1652,15 @@ class Charmm:
                 gmso_match_ff_by=gmso_match_ff_by,
                 residues=self.residues,
                 boxes_for_simulation=self.boxes_for_simulation,
+                use_template_ff=self.use_template_ff,
             )
+            
+            if self.use_template_ff:
+                # mbuild standard positions are in nm. We need to convert them to unyt nm?
+                # actually, structure_box_0 is mb.Compound. It has .xyz (N,3) in nm.
+                import unyt as u
+                positions_0 = self.structure_box_0.xyz * u.nm
+                self.topology_box_0_ff = TemplateTopologyProxy(self.topology_box_0_ff, self.topology_box_0_ff.__dict__["sequence_"], positions=positions_0)
 
             print(
                 "GOMC FF writing each residues FF as a group for  structure_box_1"
@@ -1670,15 +1682,24 @@ class Charmm:
                 gmso_match_ff_by=gmso_match_ff_by,
                 residues=self.residues,
                 boxes_for_simulation=self.boxes_for_simulation,
+                use_template_ff=self.use_template_ff,
             )
+            
+            if self.use_template_ff:
+                import unyt as u
+                positions_1 = self.structure_box_1.xyz * u.nm
+                self.topology_box_1_ff = TemplateTopologyProxy(self.topology_box_1_ff, self.topology_box_1_ff.__dict__["sequence_"], positions=positions_1)
 
             # combine the topologies of box 0 and 1
-            self.topology_box_0_and_1_ff = gmso.Topology()
-            # iterate thru sites to combine the topologies of box 0 and 1
-            for site_i in self.topology_box_0_ff.sites:
-                self.topology_box_0_and_1_ff.add_site(site_i)
-            for site_i in self.topology_box_1_ff.sites:
-                self.topology_box_0_and_1_ff.add_site(site_i)
+            if self.use_template_ff:
+                self.topology_box_0_and_1_ff = combine_proxies(self.topology_box_0_ff, self.topology_box_1_ff)
+            else:
+                self.topology_box_0_and_1_ff = gmso.Topology()
+                # iterate thru sites to combine the topologies of box 0 and 1
+                for site_i in self.topology_box_0_ff.sites:
+                    self.topology_box_0_and_1_ff.add_site(site_i)
+                for site_i in self.topology_box_1_ff.sites:
+                    self.topology_box_0_and_1_ff.add_site(site_i)
             # iterate thru connections (bonds, angles, dihedrals, and impropers) and add to empty topology
             # to combine the topologyies of box 0 and 1
             for connection_i in self.topology_box_0_ff.connections:
@@ -1854,7 +1875,13 @@ class Charmm:
                 gmso_match_ff_by=gmso_match_ff_by,
                 residues=self.residues,
                 boxes_for_simulation=self.boxes_for_simulation,
+                use_template_ff=self.use_template_ff,
             )
+            
+            if self.use_template_ff:
+                import unyt as u
+                positions_0 = self.structure_box_0.xyz * u.nm
+                self.topology_box_0_ff = TemplateTopologyProxy(self.topology_box_0_ff, self.topology_box_0_ff.__dict__["sequence_"], positions=positions_0)
 
             self.atom_types_dict_per_residue.update(self.atom_types_dict_box_0)
             self.bond_types_dict_per_residue.update(self.bond_types_dict_box_0)

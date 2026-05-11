@@ -19,6 +19,7 @@ def specific_ff_to_residue(
     gmso_match_ff_by="molecule",
     residues=None,
     boxes_for_simulation=1,
+    use_template_ff=False,
 ):
     """
     Takes the mbuild Compound or mbuild Box and applies the selected
@@ -441,7 +442,26 @@ def specific_ff_to_residue(
 
         else:
             initial_no_atoms = structure.n_particles
-            new_gmso_topology = mb_convert(structure, custom_groups=residues)
+            if use_template_ff:
+                template_structure = mb.Compound()
+                template_structure.box = structure.box
+                sequence = []
+                seen_residues = set()
+                
+                for child in structure.children:
+                    sequence.append(child.name)
+                    if child.name not in seen_residues:
+                        seen_residues.add(child.name)
+                        import copy
+                        template_child = mb.clone(child)
+                        template_structure.add(template_child)
+                        
+                new_gmso_topology = mb_convert(template_structure, custom_groups=residues)
+                new_gmso_topology.__dict__["sequence_"] = sequence
+                new_gmso_topology.__dict__["use_template_ff_"] = True
+                new_gmso_topology.__dict__["initial_no_atoms_"] = initial_no_atoms
+            else:
+                new_gmso_topology = mb_convert(structure, custom_groups=residues)
 
     elif isinstance(structure, mb.Box):
         initial_no_atoms = 0
@@ -798,17 +818,20 @@ def specific_ff_to_residue(
     final_no_atoms = topology.n_sites
 
     if final_no_atoms != initial_no_atoms:
-        print_error_message = (
-            "ERROR: The initial number of atoms sent to the force field analysis is "
-            "not the same as the final number of atoms analyzed. "
-            "The initial number of atoms was {} and the final number of atoms was {}. "
-            "Please ensure that all the residues names that are in the initial "
-            "Compound are listed in the residues list "
-            "(i.e., the residues variable).".format(
-                initial_no_atoms, final_no_atoms
+        if use_template_ff:
+            pass # The number of atoms in templates is expected to be smaller
+        else:
+            print_error_message = (
+                "ERROR: The initial number of atoms sent to the force field analysis is "
+                "not the same as the final number of atoms analyzed. "
+                "The initial number of atoms was {} and the final number of atoms was {}. "
+                "Please ensure that all the residues names that are in the initial "
+                "Compound are listed in the residues list "
+                "(i.e., the residues variable).".format(
+                    initial_no_atoms, final_no_atoms
+                )
             )
-        )
-        raise ValueError(print_error_message)
+            raise ValueError(print_error_message)
 
     return [
         topology,
