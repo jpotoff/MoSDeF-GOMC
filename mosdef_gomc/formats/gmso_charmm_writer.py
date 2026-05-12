@@ -1658,7 +1658,6 @@ class Charmm:
             if self.use_template_ff:
                 # mbuild standard positions are in nm. We need to convert them to unyt nm?
                 # actually, structure_box_0 is mb.Compound. It has .xyz (N,3) in nm.
-                import unyt as u
                 positions_0 = self.structure_box_0.xyz * u.nm
                 self.topology_box_0_ff = TemplateTopologyProxy(self.topology_box_0_ff, self.topology_box_0_ff.__dict__["sequence_"], positions=positions_0)
 
@@ -1686,7 +1685,6 @@ class Charmm:
             )
             
             if self.use_template_ff:
-                import unyt as u
                 positions_1 = self.structure_box_1.xyz * u.nm
                 self.topology_box_1_ff = TemplateTopologyProxy(self.topology_box_1_ff, self.topology_box_1_ff.__dict__["sequence_"], positions=positions_1)
 
@@ -1879,7 +1877,6 @@ class Charmm:
             )
             
             if self.use_template_ff:
-                import unyt as u
                 positions_0 = self.structure_box_0.xyz * u.nm
                 self.topology_box_0_ff = TemplateTopologyProxy(self.topology_box_0_ff, self.topology_box_0_ff.__dict__["sequence_"], positions=positions_0)
 
