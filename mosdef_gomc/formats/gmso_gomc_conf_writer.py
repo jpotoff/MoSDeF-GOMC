@@ -4046,11 +4046,18 @@ class GOMCControl:
             key = "PMEGridSpacing"
             if input_var_keys_list[var_iter] == key:
                 if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
-                    self.ck_input_variable_int_or_float_greater_zero(
-                        self.input_variables_dict,
-                        key,
-                        bad_input_variables_values_list,
-                    )
+                    if self.ensemble_type in ["GEMC_NPT", "GEMC_NVT", "GCMC"]:
+                        self.ck_input_variable_int_float_or_list_of_2_int_float_greater_zero(
+                            self.input_variables_dict,
+                            key,
+                            bad_input_variables_values_list,
+                        )
+                    else:
+                        self.ck_input_variable_int_or_float_greater_zero(
+                            self.input_variables_dict,
+                            key,
+                            bad_input_variables_values_list,
+                        )
                 if (
                     input_var_keys_list[var_iter] == key
                     and key in possible_ensemble_variables_list
@@ -7005,9 +7012,17 @@ class GOMCControl:
                     "{:25s} {}\n".format("PMESplineOrder", self.PMESplineOrder)
                 )
             if self.PMEGridSpacing is not None:
-                data_control_file.write(
-                    "{:25s} {}\n".format("PMEGridSpacing", self.PMEGridSpacing)
-                )
+                if isinstance(self.PMEGridSpacing, list):
+                    data_control_file.write(
+                        "{:25s} 0 {}\n".format("PMEGridSpacing", self.PMEGridSpacing[0])
+                    )
+                    data_control_file.write(
+                        "{:25s} 1 {}\n".format("PMEGridSpacing", self.PMEGridSpacing[1])
+                    )
+                else:
+                    data_control_file.write(
+                        "{:25s} {}\n".format("PMEGridSpacing", self.PMEGridSpacing)
+                    )
             if self.PMERefreshFreq is not None:
                 data_control_file.write(
                     "{:25s} {}\n".format("PMERefreshFreq", self.PMERefreshFreq)
@@ -7889,6 +7904,50 @@ class GOMCControl:
             or str(input_variables_dict[key]) == str(False)
         ):
             bad_input_variables_values_list.append(key)
+
+    def ck_input_variable_int_float_or_list_of_2_int_float_greater_zero(
+        self, input_variables_dict, key, bad_input_variables_values_list
+    ):
+        """
+        Checks if the input variable is an integer or float greater than zero (value > 0),
+        or a list of exactly two such values.
+        If not, the provided list is appended with the bad dict_key.
+
+        Parameters
+        ----------
+        input_variables_dict: dict
+            The user input variable dictionary
+        key: str
+            Dictionary key for the user provided input variable list
+        bad_input_variables_values_list: list
+            A list to append with the bad variable user inputs
+            so the user can see which variable input values are bad.
+
+        Returns
+        ---------
+        bad_input_variables_values_list: list
+            A list to append with the bad variable user inputs
+            so the user can see which variable input values are bad.
+        """
+        val = input_variables_dict[key]
+        if val is not None:
+            if isinstance(val, (int, float)) and not isinstance(val, bool):
+                if val <= 0:
+                    bad_input_variables_values_list.append(key)
+            elif isinstance(val, list):
+                if len(val) != 2:
+                    bad_input_variables_values_list.append(key)
+                else:
+                    for v in val:
+                        if (
+                            not isinstance(v, (int, float))
+                            or isinstance(v, bool)
+                            or v <= 0
+                        ):
+                            bad_input_variables_values_list.append(key)
+                            break
+            else:
+                bad_input_variables_values_list.append(key)
 
     def ck_input_variable_int_greater_zero(
         self, input_variables_dict, key, bad_input_variables_values_list
