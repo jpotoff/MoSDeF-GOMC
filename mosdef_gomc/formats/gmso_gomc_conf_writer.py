@@ -455,6 +455,14 @@ def _get_all_possible_input_variables(description=False):
         "The number of CD-CBMC dihedral angle trials to perform for geometry "
         "(per the coupled-decoupled CBMC scheme)."
         "".format(_get_default_variables_dict()["CBMC_Dih"]),
+        "CBMC_LookAhead": "CBMC inputs (all ensembles): int (>= 0), default = {}, "
+        "The number of look-ahead samples per Lennard-Jones trial during "
+        "molecule growth. 0 turns look-ahead off."
+        "".format(_get_default_variables_dict()["CBMC_LookAhead"]),
+        "CBMC_LookAheadDih": "CBMC inputs (all ensembles): int (>= 0), default = {}, "
+        "The number of dihedral (torsion) samples per look-ahead step. "
+        "0 means use the CBMC_Dih value."
+        "".format(_get_default_variables_dict()["CBMC_LookAheadDih"]),
         # Control file (.conf file ) output controls/parameters
         "OutputName": "Output Frequency (all ensembles): str (NO SPACES), default = {}. "
         "The UNIQUE STRING NAME, WITH NO SPACES, which is used for the "
@@ -1106,6 +1114,8 @@ def _get_default_variables_dict():
         "CBMC_Nth": 10,
         "CBMC_Ang": 50,
         "CBMC_Dih": 50,
+        "CBMC_LookAhead": 0,
+        "CBMC_LookAheadDih": 0,
         # Control file (.conf file ) output controls/parameters
         "OutputName": "Output_data",
         "CoordinatesFreq": [False, 1000000],
@@ -1450,7 +1460,14 @@ def _get_possible_ensemble_input_variables(ensemble_type):
         "SampleFreq",
     ]
 
-    cbmc_variables_list = ["CBMC_First", "CBMC_Nth", "CBMC_Ang", "CBMC_Dih"]
+    cbmc_variables_list = [
+        "CBMC_First",
+        "CBMC_Nth",
+        "CBMC_Ang",
+        "CBMC_Dih",
+        "CBMC_LookAhead",
+        "CBMC_LookAheadDih",
+    ]
 
     output_freq_variables_list = [
         "OutputName",
@@ -1925,6 +1942,12 @@ class GOMCControl:
      CBMC_Dih: int (>= 0), default = 50
          The Number of CD-CBMC dihedral angle trials to perform for geometry
          (per the coupled-decoupled CBMC scheme).
+     CBMC_LookAhead: int (>= 0), default = 0
+         The number of look-ahead samples per Lennard-Jones trial during
+         molecule growth. 0 turns look-ahead off.
+     CBMC_LookAheadDih: int (>= 0), default = 0
+         The number of dihedral (torsion) samples per look-ahead step.
+         0 means use the CBMC_Dih value.
      OutputName: str (NO SPACES), , default = "Output_data", default = [True, 1M] or
          [True , set via formula based on the number of RunSteps or 1M max]
          The UNIQUE STRING NAME, WITH NO SPACES, which is used for the
@@ -3206,7 +3229,9 @@ class GOMCControl:
         ]
         self.ElectroStatic = default_input_variables_dict["ElectroStatic"]
         self.Ewald = default_input_variables_dict["Ewald"]
-        self.ElectrostaticMethod = default_input_variables_dict["ElectrostaticMethod"]
+        self.ElectrostaticMethod = default_input_variables_dict[
+            "ElectrostaticMethod"
+        ]
         self.PMESplineOrder = default_input_variables_dict["PMESplineOrder"]
         self.PMEGridSpacing = default_input_variables_dict["PMEGridSpacing"]
         self.PMERefreshFreq = default_input_variables_dict["PMERefreshFreq"]
@@ -3221,6 +3246,10 @@ class GOMCControl:
         self.CBMC_Nth = default_input_variables_dict["CBMC_Nth"]
         self.CBMC_Ang = default_input_variables_dict["CBMC_Ang"]
         self.CBMC_Dih = default_input_variables_dict["CBMC_Dih"]
+        self.CBMC_LookAhead = default_input_variables_dict["CBMC_LookAhead"]
+        self.CBMC_LookAheadDih = default_input_variables_dict[
+            "CBMC_LookAheadDih"
+        ]
         self.OutputName = default_input_variables_dict["OutputName"]
         self.DistName = default_input_variables_dict["DistName"]
         self.HistName = default_input_variables_dict["HistName"]
@@ -4022,7 +4051,7 @@ class GOMCControl:
                 if self.input_variables_dict[key] is not None:
                     if not isinstance(self.input_variables_dict[key], str):
                         bad_input_variables_values_list.append(key)
-                        
+
                 if (
                     input_var_keys_list[var_iter] == key
                     and key in possible_ensemble_variables_list
@@ -4031,7 +4060,12 @@ class GOMCControl:
 
             key = "PMESplineOrder"
             if input_var_keys_list[var_iter] == key:
-                if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
+                if (
+                    str(
+                        self.input_variables_dict.get("ElectrostaticMethod")
+                    ).upper()
+                    == "PME"
+                ):
                     self.ck_input_variable_int_or_float_greater_zero(
                         self.input_variables_dict,
                         key,
@@ -4045,7 +4079,12 @@ class GOMCControl:
 
             key = "PMEGridSpacing"
             if input_var_keys_list[var_iter] == key:
-                if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
+                if (
+                    str(
+                        self.input_variables_dict.get("ElectrostaticMethod")
+                    ).upper()
+                    == "PME"
+                ):
                     if self.ensemble_type in ["GEMC_NPT", "GEMC_NVT", "GCMC"]:
                         self.ck_input_variable_int_float_or_list_of_2_int_float_greater_zero(
                             self.input_variables_dict,
@@ -4066,7 +4105,12 @@ class GOMCControl:
 
             key = "PMERefreshFreq"
             if input_var_keys_list[var_iter] == key:
-                if str(self.input_variables_dict.get("ElectrostaticMethod")).upper() == "PME":
+                if (
+                    str(
+                        self.input_variables_dict.get("ElectrostaticMethod")
+                    ).upper()
+                    == "PME"
+                ):
                     self.ck_input_variable_int_or_float_greater_zero(
                         self.input_variables_dict,
                         key,
@@ -4288,6 +4332,34 @@ class GOMCControl:
                     and key in possible_ensemble_variables_list
                 ):
                     self.CBMC_Dih = self.input_variables_dict[key]
+
+            key = "CBMC_LookAhead"
+            if input_var_keys_list[var_iter] == key:
+                self.ck_input_variable_int_zero_or_greater(
+                    self.input_variables_dict,
+                    key,
+                    bad_input_variables_values_list,
+                )
+
+                if (
+                    input_var_keys_list[var_iter] == key
+                    and key in possible_ensemble_variables_list
+                ):
+                    self.CBMC_LookAhead = self.input_variables_dict[key]
+
+            key = "CBMC_LookAheadDih"
+            if input_var_keys_list[var_iter] == key:
+                self.ck_input_variable_int_zero_or_greater(
+                    self.input_variables_dict,
+                    key,
+                    bad_input_variables_values_list,
+                )
+
+                if (
+                    input_var_keys_list[var_iter] == key
+                    and key in possible_ensemble_variables_list
+                ):
+                    self.CBMC_LookAheadDih = self.input_variables_dict[key]
 
             key = "OutputName"
             if input_var_keys_list[var_iter] == key:
@@ -6983,9 +7055,14 @@ class GOMCControl:
         data_control_file.write("####################################\n")
         data_control_file.write("# ELECTROSTATIC   \n")
         data_control_file.write("####################################\n")
-        if self.ElectrostaticMethod is not None and str(self.ElectrostaticMethod).lower() != "none":
+        if (
+            self.ElectrostaticMethod is not None
+            and str(self.ElectrostaticMethod).lower() != "none"
+        ):
             data_control_file.write(
-                "{:25s} {}\n".format("ElectrostaticMethod", self.ElectrostaticMethod)
+                "{:25s} {}\n".format(
+                    "ElectrostaticMethod", self.ElectrostaticMethod
+                )
             )
         else:
             data_control_file.write("{:25s} {}\n".format("Ewald", self.Ewald))
@@ -7005,7 +7082,10 @@ class GOMCControl:
         data_control_file.write(
             "{:25s} {}\n".format("1-4scaling", self.electrostatic_1_4)
         )
-        if self.ElectrostaticMethod is not None and str(self.ElectrostaticMethod).upper() == "PME":
+        if (
+            self.ElectrostaticMethod is not None
+            and str(self.ElectrostaticMethod).upper() == "PME"
+        ):
             data_control_file.write(" \n")
             if self.PMESplineOrder is not None:
                 data_control_file.write(
@@ -7014,14 +7094,20 @@ class GOMCControl:
             if self.PMEGridSpacing is not None:
                 if isinstance(self.PMEGridSpacing, list):
                     data_control_file.write(
-                        "{:25s} 0 {}\n".format("PMEGridSpacing", self.PMEGridSpacing[0])
+                        "{:25s} 0 {}\n".format(
+                            "PMEGridSpacing", self.PMEGridSpacing[0]
+                        )
                     )
                     data_control_file.write(
-                        "{:25s} 1 {}\n".format("PMEGridSpacing", self.PMEGridSpacing[1])
+                        "{:25s} 1 {}\n".format(
+                            "PMEGridSpacing", self.PMEGridSpacing[1]
+                        )
                     )
                 else:
                     data_control_file.write(
-                        "{:25s} {}\n".format("PMEGridSpacing", self.PMEGridSpacing)
+                        "{:25s} {}\n".format(
+                            "PMEGridSpacing", self.PMEGridSpacing
+                        )
                     )
             if self.PMERefreshFreq is not None:
                 data_control_file.write(
@@ -7596,6 +7682,12 @@ class GOMCControl:
         data_control_file.write("{:25s} {}\n".format("CBMC_Nth", self.CBMC_Nth))
         data_control_file.write("{:25s} {}\n".format("CBMC_Ang", self.CBMC_Ang))
         data_control_file.write("{:25s} {}\n".format("CBMC_Dih", self.CBMC_Dih))
+        data_control_file.write(
+            "{:25s} {}\n".format("CBMC_LookAhead", self.CBMC_LookAhead)
+        )
+        data_control_file.write(
+            "{:25s} {}\n".format("CBMC_LookAheadDih", self.CBMC_LookAheadDih)
+        )
         data_control_file.write(" \n")
 
         data_control_file.write(
@@ -7671,8 +7763,12 @@ class GOMCControl:
             data_control_file.write("####################################\n")
             data_control_file.write("# OutHistSettings \n")
             data_control_file.write("####################################\n")
-            data_control_file.write("{:25s} {}\n".format("DistName", self.DistName))
-            data_control_file.write("{:25s} {}\n".format("HistName", self.HistName))
+            data_control_file.write(
+                "{:25s} {}\n".format("DistName", self.DistName)
+            )
+            data_control_file.write(
+                "{:25s} {}\n".format("HistName", self.HistName)
+            )
             data_control_file.write(
                 "{:25s} {}\n".format("RunNumber", self.RunNumber)
             )
@@ -9419,6 +9515,12 @@ def write_gomc_control_file(
     CBMC_Dih: int (>= 0), default = 50
         The Number of CD-CBMC dihedral angle trials to perform for geometry
         (per the coupled-decoupled CBMC scheme).
+    CBMC_LookAhead: int (>= 0), default = 0
+        The number of look-ahead samples per Lennard-Jones trial during
+        molecule growth. 0 turns look-ahead off.
+    CBMC_LookAheadDih: int (>= 0), default = 0
+        The number of dihedral (torsion) samples per look-ahead step.
+        0 means use the CBMC_Dih value.
     OutputName: str (NO SPACES), , default = "Output_data", default = [True, 1M] or
         [True , set via formula based on the number of RunSteps or 1M max]
         The UNIQUE STRING NAME, WITH NO SPACES, which is used for the
