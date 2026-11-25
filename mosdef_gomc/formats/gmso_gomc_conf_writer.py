@@ -109,6 +109,13 @@ def _get_required_data(description=False):
         "NOTE: the checkpoint_filename with or without the path can be entered with the "
         ".chk extension, or without an extension; if it "
         "does not have the file extension, the .chk extension will then be added to the filename.",
+        "ExpertMode": "Required to use non-standard move ratios (all ensembles): boolean (default=False), "
+        "This allows the move ratios to be any value, regardless of the ensemble, "
+        "provided all the move ratios sum to 1. For example, this mode is utilized "
+        "to easily equilibrate a GCMC or GEMC ensemble in a pseudo NVT mode by removing "
+        "the requirement that the volume and swap moves must be non-zero. "
+        "In other words, when the volume and swap moves are zero, the GCMC and GEMC "
+        "ensembles will run pseudo NVT simulations in 1 and 2 simulation boxes, respectively.",
         "Parameters": "Required for alternate force field file (all ensembles): "
         "str, (default=None), "
         "Override all other force field directory and filename input with the correct extension (.inp or .par). "
@@ -478,6 +485,14 @@ def _get_all_possible_input_variables(description=False):
         "The number of SMC particles used during molecule growth. "
         "Only used when CBMC_SMC is True."
         "".format(_get_default_variables_dict()["CBMC_SMCParticles"]),
+        "FlexibleBonds": "CBMC inputs (all ensembles): boolean, default = {}. "
+        "True to sample the bond lengths of flexible bonds during CBMC growth "
+        "(swap, intra-swap, and regrowth moves), drawn from each bond's "
+        "harmonic bond-stretching distribution. Only bonds between two heavy "
+        "atoms (mass >= 3.5 amu) with a finite, non-fixed force constant are "
+        "sampled; bonds to hydrogen, fixed bonds, and ring bonds stay at their "
+        "equilibrium length. False keeps all bonds fixed at their equilibrium length."
+        "".format(_get_default_variables_dict()["FlexibleBonds"]),
         # Control file (.conf file ) output controls/parameters
         "OutputName": "Output Frequency (all ensembles): str (NO SPACES), default = {}. "
         "The UNIQUE STRING NAME, WITH NO SPACES, which is used for the "
@@ -1135,6 +1150,7 @@ def _get_default_variables_dict():
         "CBMC_SMC": False,
         "CBMC_SMCTrials": 1,
         "CBMC_SMCParticles": 50,
+        "FlexibleBonds": False,
         # Control file (.conf file ) output controls/parameters
         "OutputName": "Output_data",
         "CoordinatesFreq": [False, 1000000],
@@ -1490,6 +1506,7 @@ def _get_possible_ensemble_input_variables(ensemble_type):
         "CBMC_SMC",
         "CBMC_SMCTrials",
         "CBMC_SMCParticles",
+        "FlexibleBonds",
     ]
 
     output_freq_variables_list = [
@@ -1982,6 +1999,13 @@ class GOMCControl:
      CBMC_SMCParticles: int (> 0), default = 50
          The number of SMC particles used during molecule growth.
          Only used when CBMC_SMC is True.
+     FlexibleBonds: boolean, default = False
+         True to sample the bond lengths of flexible bonds during CBMC growth
+         (swap, intra-swap, and regrowth moves), drawn from each bond's
+         harmonic bond-stretching distribution. Only bonds between two heavy
+         atoms (mass >= 3.5 amu) with a finite, non-fixed force constant are
+         sampled; bonds to hydrogen, fixed bonds, and ring bonds stay at their
+         equilibrium length. False keeps all bonds fixed at their equilibrium length.
      OutputName: str (NO SPACES), , default = "Output_data", default = [True, 1M] or
          [True , set via formula based on the number of RunSteps or 1M max]
          The UNIQUE STRING NAME, WITH NO SPACES, which is used for the
@@ -3292,6 +3316,7 @@ class GOMCControl:
         self.CBMC_SMCParticles = default_input_variables_dict[
             "CBMC_SMCParticles"
         ]
+        self.FlexibleBonds = default_input_variables_dict["FlexibleBonds"]
         self.OutputName = default_input_variables_dict["OutputName"]
         self.DistName = default_input_variables_dict["DistName"]
         self.HistName = default_input_variables_dict["HistName"]
@@ -4458,6 +4483,20 @@ class GOMCControl:
                     and key in possible_ensemble_variables_list
                 ):
                     self.CBMC_SMCParticles = self.input_variables_dict[key]
+
+            key = "FlexibleBonds"
+            if input_var_keys_list[var_iter] == key:
+                self.ck_input_variable_true_or_false(
+                    self.input_variables_dict,
+                    key,
+                    bad_input_variables_values_list,
+                )
+
+                if (
+                    input_var_keys_list[var_iter] == key
+                    and key in possible_ensemble_variables_list
+                ):
+                    self.FlexibleBonds = self.input_variables_dict[key]
 
             key = "OutputName"
             if input_var_keys_list[var_iter] == key:
@@ -7796,6 +7835,9 @@ class GOMCControl:
         data_control_file.write(
             "{:25s} {}\n".format("CBMC_SMCParticles", self.CBMC_SMCParticles)
         )
+        data_control_file.write(
+            "{:25s} {}\n".format("FlexibleBonds", self.FlexibleBonds)
+        )
         data_control_file.write(" \n")
 
         data_control_file.write(
@@ -9642,6 +9684,13 @@ def write_gomc_control_file(
     CBMC_SMCParticles: int (> 0), default = 50
         The number of SMC particles used during molecule growth.
         Only used when CBMC_SMC is True.
+    FlexibleBonds: boolean, default = False
+        True to sample the bond lengths of flexible bonds during CBMC growth
+        (swap, intra-swap, and regrowth moves), drawn from each bond's
+        harmonic bond-stretching distribution. Only bonds between two heavy
+        atoms (mass >= 3.5 amu) with a finite, non-fixed force constant are
+        sampled; bonds to hydrogen, fixed bonds, and ring bonds stay at their
+        equilibrium length. False keeps all bonds fixed at their equilibrium length.
     OutputName: str (NO SPACES), , default = "Output_data", default = [True, 1M] or
         [True , set via formula based on the number of RunSteps or 1M max]
         The UNIQUE STRING NAME, WITH NO SPACES, which is used for the

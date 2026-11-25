@@ -25,9 +25,8 @@ class TestGOMCControlFileWriter(BaseTest):
 
     def test_get_required_data(self):
         value = gomc_control._get_required_data(description=False)
-        assert (
-            value.sort()
-            == [
+        assert sorted(value) == sorted(
+            [
                 "charmm_object",
                 "ensemble_type",
                 "RunSteps",
@@ -36,9 +35,9 @@ class TestGOMCControlFileWriter(BaseTest):
                 "check_input_files_exist",
                 "Restart",
                 "Checkpoint",
+                "ExpertMode",
                 "Parameters",
                 "Coordinates_box_0",
-                "override_psf_box_0",
                 "Coordinates_box_1",
                 "Structure_box_1",
                 "binCoordinates_box_0",
@@ -47,13 +46,13 @@ class TestGOMCControlFileWriter(BaseTest):
                 "binCoordinates_box_1",
                 "extendedSystem_box_1",
                 "binVelocities_box_1",
-            ].sort()
+                "Structure_box_0",
+            ]
         )
 
         value = gomc_control._get_required_data(description=True)
-        assert (
-            gomc_control.dict_keys_to_list(value).sort()
-            == [
+        assert sorted(gomc_control.dict_keys_to_list(value)) == sorted(
+            [
                 "charmm_object",
                 "ensemble_type",
                 "RunSteps",
@@ -64,9 +63,7 @@ class TestGOMCControlFileWriter(BaseTest):
                 "ExpertMode",
                 "check_input_files_exist",
                 "Parameters",
-                "Coordinate_box_0",
                 "Structure_box_0",
-                "Coordinate_box_1",
                 "Structure_box_1",
                 "binCoordinates_box_0",
                 "extendedSystem_box_0",
@@ -74,16 +71,17 @@ class TestGOMCControlFileWriter(BaseTest):
                 "binCoordinates_box_1",
                 "extendedSystem_box_1",
                 "binVelocities_box_1",
-            ].sort()
+                "Coordinates_box_0",
+                "Coordinates_box_1",
+            ]
         )
 
     def test_get_all_possible_input_variable(self):
         value = gomc_control._get_all_possible_input_variables(
             description=False
         )
-        assert (
-            value.sort()
-            == [
+        assert sorted(value) == sorted(
+            [
                 "PRNG",
                 "ParaTypeCHARMM",
                 "ParaTypeMie",
@@ -111,6 +109,7 @@ class TestGOMCControlFileWriter(BaseTest):
                 "EqSteps",
                 "AdjSteps",
                 "VDWGeometricSigma",
+                "FlexibleBonds",
                 "useConstantArea",
                 "FixVolBox0",
                 "ChemPot",
@@ -169,14 +168,22 @@ class TestGOMCControlFileWriter(BaseTest):
                 "MEMC-3Freq",
                 "ExchangeVolumeDim",
                 "MEMC_DataInput",
-                "TargetedSwap",
-            ].sort()
+                "TableInterpType",
+                "TabulatedEnergiesFile",
+                "MultiParticleBrownianFreq",
+                "MultiParticleLiquid",
+                "MultiParticleGas",
+                "MEMC-2-LiqFreq",
+                "MEMC-3-LiqFreq",
+                "TargetedSwapFreq",
+                "IntraTargetedSwapFreq",
+                "TargetedSwap_DataInput",
+            ]
         )
 
         value = gomc_control._get_all_possible_input_variables(description=True)
-        assert (
-            gomc_control.dict_keys_to_list(value).sort()
-            == [
+        assert sorted(gomc_control.dict_keys_to_list(value)) == sorted(
+            [
                 "PRNG",
                 "ParaTypeCHARMM",
                 "ParaTypeMie",
@@ -204,6 +211,7 @@ class TestGOMCControlFileWriter(BaseTest):
                 "EqSteps",
                 "AdjSteps",
                 "VDWGeometricSigma",
+                "FlexibleBonds",
                 "useConstantArea",
                 "FixVolBox0",
                 "ChemPot",
@@ -262,15 +270,23 @@ class TestGOMCControlFileWriter(BaseTest):
                 "MEMC-3Freq",
                 "ExchangeVolumeDim",
                 "MEMC_DataInput",
-                "TargetedSwap",
-            ].sort()
+                "TableInterpType",
+                "TabulatedEnergiesFile",
+                "MultiParticleBrownianFreq",
+                "MultiParticleLiquid",
+                "MultiParticleGas",
+                "MEMC-2-LiqFreq",
+                "MEMC-3-LiqFreq",
+                "TargetedSwapFreq",
+                "IntraTargetedSwapFreq",
+                "TargetedSwap_DataInput",
+            ]
         )
 
     def test_get_default_variables_dict(self):
         value = gomc_control._get_default_variables_dict()
-        assert (
-            gomc_control.dict_keys_to_list(value).sort()
-            == [
+        assert sorted(gomc_control.dict_keys_to_list(value)) == sorted(
+            [
                 "PRNG",
                 "ParaTypeCHARMM",
                 "ParaTypeMie",
@@ -283,7 +299,6 @@ class TestGOMCControlFileWriter(BaseTest):
                 "LRC",
                 "IPC",
                 "Exclude",
-                "coul_1_4_scaling",
                 "Potential",
                 "Rswitch",
                 "ElectroStatic",
@@ -299,6 +314,7 @@ class TestGOMCControlFileWriter(BaseTest):
                 "EqSteps",
                 "AdjSteps",
                 "VDWGeometricSigma",
+                "FlexibleBonds",
                 "useConstantArea",
                 "FixVolBox0",
                 "ChemPot",
@@ -357,8 +373,20 @@ class TestGOMCControlFileWriter(BaseTest):
                 "MEMC-2Freq",
                 "IntraMEMC-3Freq",
                 "MEMC-3Freq",
-                "TargetedSwap",
-            ].sort()
+                "electrostatic_1_4",
+                "TableInterpType",
+                "TabulatedEnergiesFile",
+                "MultiParticleLiquid",
+                "MultiParticleGas",
+                "TargetedSwap_DataInput",
+                "subvolumerigidswap",
+                "subvolumepbc",
+                "MultiParticleBrownianFreq",
+                "MEMC-2-LiqFreq",
+                "MEMC-3-LiqFreq",
+                "TargetedSwapFreq",
+                "IntraTargetedSwapFreq",
+            ]
         )
 
     def test_print_ensemble_info(self):
@@ -600,6 +628,7 @@ class TestGOMCControlFileWriter(BaseTest):
                 "Rcut": False,
                 "RcutLow": False,
                 "VDWGeometricSigma": False,
+                "FlexibleBonds": False,
                 "Exclude": False,
                 "Ewald": False,
                 "ElectrostaticMethod": False,
@@ -723,6 +752,11 @@ class TestGOMCControlFileWriter(BaseTest):
 
                 elif line.startswith("VDWGeometricSigma "):
                     variables_read_dict["VDWGeometricSigma"] = True
+                    split_line = line.split()
+                    assert split_line[1] == "False"
+
+                elif line.startswith("FlexibleBonds "):
+                    variables_read_dict["FlexibleBonds"] = True
                     split_line = line.split()
                     assert split_line[1] == "False"
 
@@ -1010,6 +1044,7 @@ class TestGOMCControlFileWriter(BaseTest):
             "Rcut": True,
             "RcutLow": True,
             "VDWGeometricSigma": True,
+            "FlexibleBonds": True,
             "Exclude": True,
             "Ewald": True,
             "ElectrostaticMethod": False,
@@ -1062,6 +1097,63 @@ class TestGOMCControlFileWriter(BaseTest):
             "OutVolume": True,
             "OutSurfaceTension": True,
         }
+
+    def test_save_FlexibleBonds_NVT(self, ethane_gomc):
+        test_box_ethane_gomc = mb.fill_box(
+            compound=[ethane_gomc], n_compounds=[1], box=[1, 1, 1]
+        )
+        charmm = Charmm(
+            test_box_ethane_gomc,
+            "ethane",
+            ff_filename="ethane",
+            residues=[ethane_gomc.name],
+            forcefield_selection="oplsaa",
+        )
+
+        assert (
+            gomc_control._get_default_variables_dict()["FlexibleBonds"] is False
+        )
+        assert (
+            "FlexibleBonds"
+            in gomc_control._get_possible_ensemble_input_variables("NVT")
+        )
+
+        for flexible_bonds in [True, False]:
+            gomc_control.write_gomc_control_file(
+                charmm,
+                "test_save_FlexibleBonds_NVT.conf",
+                "NVT",
+                10,
+                300 * u.K,
+                check_input_files_exist=False,
+                input_variables_dict={"FlexibleBonds": flexible_bonds},
+            )
+
+            flexible_bonds_read = False
+            with open("test_save_FlexibleBonds_NVT.conf", "r") as fp:
+                for line in fp.readlines():
+                    if line.startswith("FlexibleBonds "):
+                        flexible_bonds_read = True
+                        assert line.split()[1] == str(flexible_bonds)
+            assert flexible_bonds_read
+
+        for bad_value in ["s", 1, []]:
+            with pytest.raises(
+                ValueError,
+                match=r"ERROR: The following input variables have "
+                r"bad values \(check spelling and for empty spaces in the keys or that "
+                r"the values are in the correct form with the acceptable values\)"
+                r": \['FlexibleBonds'\]",
+            ):
+                gomc_control.write_gomc_control_file(
+                    charmm,
+                    "test_save_FlexibleBonds_NVT.conf",
+                    "NVT",
+                    10,
+                    300 * u.K,
+                    check_input_files_exist=False,
+                    input_variables_dict={"FlexibleBonds": bad_value},
+                )
 
     def test_save_basic_NPT(self, ethane_gomc):
         test_box_ethane_gomc = mb.fill_box(
